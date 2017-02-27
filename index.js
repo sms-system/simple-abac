@@ -7,8 +7,8 @@ module.exports = class ABAC {
   }
 
   can (user, param, resource) {
-    return ['*', param].some(param => {
-      let rules = this.rules[param]
+    return ['*', param].some((_param, i) => {
+      let rules = this.rules[_param]
       if (!rules) return false
       if (typeof rules === 'function') {
         rules = [ rules ]
@@ -16,12 +16,13 @@ module.exports = class ABAC {
         rules = this.rules[rules.as]
       }
       return rules.some(rule => {
-        return rule(user, resource)
+        return i == 0?
+          rule(user, param, resource) : rule(user, resource)
       })
     })
   }
 
   cant (user, param, resource) {
-    return (!can(user, param, resource))
+    return (!this.can(user, param, resource))
   }
 }
