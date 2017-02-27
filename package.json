@@ -1,0 +1,8 @@
+{
+  "name": "simple-abac",
+  "version": "0.0.2",
+  "description": "Simple Attribute-based access control module",
+  "author": "Sergey Smirnov <sms-system@mail.ru>",
+  "private": true,
+  "license": "MIT"
+}
