@@ -1,3 +1,39 @@
+function extendObject (sourceObject, withObject) {
+  const newObject = Object.assign({}, sourceObject)
+  Object.keys(withObject).forEach(key => {
+    newObject[key] = withObject[key]
+  })
+  return newObject
+}
+
+function wrapArray (a) {
+  if (a === undefined) { return [] }
+  if (Array.isArray(a)) { return a }
+  else { return [ a ] }
+}
+
+function getChecks (rules, permission) {
+  let checks = rules[permission]
+
+  if (!checks) {
+    checks = []
+  } else if (checks.as) {
+    checks = rules[checks.as]
+  }
+
+  if (Array.isArray(checks)) {
+    checks = {
+      allow: checks
+    }
+  }
+
+  checks.allow = wrapArray(checks.allow)
+  checks.deny  = wrapArray(checks.deny)
+  checks.grant = wrapArray(checks.grant)
+
+  return checks
+}
+
 class ABAC {
   constructor (rules) {
     if (!rules['*']) {
@@ -6,32 +42,37 @@ class ABAC {
     this.rules = rules
   }
 
-  can (user, param, resource) {
-    return ['*', param].some((_param, i) => {
-      let rules = this.rules[_param]
-      if (!rules) return false
-      if (typeof rules === 'function') {
-        rules = [ rules ]
-      } else if (rules.as) {
-        rules = this.rules[rules.as]
+  can (user, permission, resource) {
+    const sources = [
+      {
+        checks: getChecks(this.rules, '*'),
+        checkAction: check => check(user, permission, resource)
+      },
+      {
+        checks: getChecks(this.rules, permission),
+        checkAction: check => check(user, resource)
       }
-      return rules.some(rule => {
-        return i == 0?
-          rule(user, param, resource) : rule(user, resource)
-      })
-    })
+    ]
+
+    const checkResult = sources.some(source =>
+      source.checks.grant.some(source.checkAction)
+    ) || (
+      !sources.some(source =>
+        source.checks.deny.some(source.checkAction)
+      ) && sources.some(source =>
+        source.checks.allow.some(source.checkAction)
+      )
+    )
+
+    return checkResult
   }
 
   cant (user, param, resource) {
-    return (!this.can(user, param, resource))
+    return !this.can(user, param, resource)
   }
 
   with (rules) {
-    let newRules = Object.assign({}, this.rules)
-    Object.keys(rules).forEach(param => {
-      newRules[param] = rules[param]
-    })
-    return new ABAC(newRules)
+    return new ABAC(extendObject( this.rules, rules ))
   }
 }
 
