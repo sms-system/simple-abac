@@ -1,4 +1,4 @@
-module.exports = class ABAC {
+class ABAC {
   constructor (rules) {
     if (!rules['*']) {
       rules['*'] = () => false
@@ -25,4 +25,14 @@ module.exports = class ABAC {
   cant (user, param, resource) {
     return (!this.can(user, param, resource))
   }
+
+  with (rules) {
+    let newRules = Object.assign({}, this.rules)
+    Object.keys(rules).forEach(param => {
+      newRules[param] = rules[param]
+    })
+    return new ABAC(newRules)
+  }
 }
+
+module.exports = ABAC
