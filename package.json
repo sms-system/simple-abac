@@ -1,6 +1,6 @@
 {
   "name": "simple-abac",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Simple Attribute-based access control module",
   "author": "Sergey Smirnov <sms-system@mail.ru>",
   "private": true,
