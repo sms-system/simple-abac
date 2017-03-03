@@ -21,7 +21,7 @@ function getChecks (rules, permission) {
     checks = rules[checks.as]
   }
 
-  if (Array.isArray(checks)) {
+  if (Array.isArray(checks) || typeof checks == 'function') {
     checks = {
       allow: checks
     }
